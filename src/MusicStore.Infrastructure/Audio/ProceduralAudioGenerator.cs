@@ -33,7 +33,7 @@ public sealed class ProceduralAudioGenerator : IAudioGenerator
 
         ApplyFadeOut(pcm, fadeMs: 30);
 
-        return EncodeMp3(pcm, SampleRate, bitrateKbps: 128);
+        return EncodeWav(pcm, SampleRate);
     }
 
     private static float[] RenderTrack(
@@ -428,30 +428,17 @@ public sealed class ProceduralAudioGenerator : IAudioGenerator
         }
     }
 
-    private static byte[] EncodeMp3(float[] mono, int sampleRate, int bitrateKbps)
+    private static byte[] EncodeWav(float[] mono, int sampleRate)
     {
-        var bytes = new byte[mono.Length * 2];
-        var o = 0;
+        using var ms = new MemoryStream();
 
-        for (var i = 0; i < mono.Length; i++)
+        var format = WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, 1);
+        using (var writer = new WaveFileWriter(ms, format))
         {
-            var v = Math.Clamp(mono[i], -1f, 1f);
-            short s = (short)Math.Round(v * short.MaxValue);
-
-            bytes[o++] = (byte)(s & 0xFF);
-            bytes[o++] = (byte)((s >> 8) & 0xFF);
+            writer.WriteSamples(mono, 0, mono.Length);
         }
 
-        using var pcmStream = new MemoryStream(bytes);
-        using var raw = new RawSourceWaveStream(pcmStream, new WaveFormat(sampleRate, 16, Channels));
-        using var outMs = new MemoryStream();
-
-        using (var mp3 = new LameMP3FileWriter(outMs, raw.WaveFormat, bitrateKbps))
-        {
-            raw.CopyTo(mp3);
-        }
-
-        return outMs.ToArray();
+        return ms.ToArray();
     }
 
     private static Random CreateRng(ulong seed)
