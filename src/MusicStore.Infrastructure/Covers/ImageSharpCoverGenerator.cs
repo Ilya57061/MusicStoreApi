@@ -5,6 +5,8 @@ using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using System.IO;
+using System.Linq;
 
 namespace MusicStore.Infrastructure.Covers;
 
@@ -114,12 +116,34 @@ public sealed class ImageSharpCoverGenerator : ICoverGenerator
 
     private static Fonts CreateFonts()
     {
-        var family = SystemFonts.Families.First();
+        var baseDir = AppContext.BaseDirectory;
 
-        return new Fonts(
-            Title: family.CreateFont(38, FontStyle.Bold),
-            Artist: family.CreateFont(24, FontStyle.Regular),
-            Tag: family.CreateFont(18, FontStyle.Italic));
+        var regularPath = System.IO.Path.Combine(baseDir, "Resources", "Fonts", "InterDisplay-Regular.ttf");
+        var boldPath = System.IO.Path.Combine(baseDir, "Resources", "Fonts", "Inter-Bold.ttf");
+
+        if (File.Exists(regularPath) && File.Exists(boldPath))
+        {
+            var fc = new FontCollection();
+            var regularFamily = fc.Add(regularPath);
+            var boldFamily = fc.Add(boldPath);
+
+            return new Fonts(
+                Title: boldFamily.CreateFont(38, FontStyle.Bold),
+                Artist: regularFamily.CreateFont(24, FontStyle.Regular),
+                Tag: regularFamily.CreateFont(18, FontStyle.Italic));
+        }
+
+        if (SystemFonts.Families.Any())
+        {
+            var family = SystemFonts.Families.First();
+            return new Fonts(
+                Title: family.CreateFont(38, FontStyle.Bold),
+                Artist: family.CreateFont(24, FontStyle.Regular),
+                Tag: family.CreateFont(18, FontStyle.Italic));
+        }
+
+        throw new InvalidOperationException(
+            "No fonts available. Add TTF fonts to MusicStore.Infrastructure/Resources/Fonts and set CopyToOutputDirectory.");
     }
 
     private static void DrawTitle(IImageProcessingContext ctx, Font font, string title, RectangleF rect)
