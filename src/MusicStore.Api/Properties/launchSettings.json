@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "MusicStore.Api": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:51688;http://localhost:51689"
+    }
+  }
+}
