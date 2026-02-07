@@ -14,7 +14,7 @@ builder.Services.AddInfrastructure();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("spa", p =>
-        p.WithOrigins("http://localhost:5173", "http://localhost:3000")
+        p.WithOrigins("http://localhost:5173", "http://localhost:3000", "https://musicstoresite.onrender.com")
          .AllowAnyHeader()
          .AllowAnyMethod());
 });
